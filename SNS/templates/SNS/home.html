@@ -1,0 +1,11 @@
+{% extends 'SNS/base.html' %}
+{% block content %}
+  {% if user.is_authenticated %}
+    <p>You are authenticated.</p>
+  {% else %}
+    <p>You are NOT authenticated.
+      <a href="{% url 'login' %}">login</a> or
+      <a href="{% url 'register' %}">make your account.</a>
+    </p>
+  {% endif %}
+{% endblock %}
