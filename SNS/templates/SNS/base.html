@@ -3,7 +3,7 @@
     <head>
       <!-- <link href="//fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext" rel="stylesheet" type="text/css"> -->
       <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-      <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+      <!-- <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css"> -->
       <!-- <link rel="stylesheet" href="{% static 'css/blog.css' %}"> -->
   <title>Final Assignment</title>
     </head>
@@ -11,6 +11,7 @@
       <div class="page-header">
           {% if user.is_authenticated %}
               <p class="top-menu">Hello {{ user.username }} <small>(<a href="{% url 'logout' %}">Log out</a>)</small></p>
+              <a href="{% url 'post_create' %}" class="top-menu"><span class="glyphicon glyphicon-plus"></span></a>
           {% else %}
               <a href="{% url 'login' %}" class="top-menu"><span class="glyphicon glyphicon-lock"></span></a>
           {% endif %}
