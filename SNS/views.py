@@ -21,6 +21,17 @@ class HomeView(ListView):
         else:
             return super().get_queryset()
 
+class UserListView(ListView):
+    model=CustomUser
+    template_name="SNS/user_list.html"
+    context_object_name="customuser_list"
+
+    def get_context_data(self):
+        context = super().get_context_data()
+        userInfo=self.request.user.customuser
+        context["followers"]=userInfo.followers
+        context["userInfo"]=userInfo
+        return context
 
 class RegisterView(CreateView):
     form_class = UserCreationForm
@@ -46,3 +57,17 @@ class PostCreateView(CreateView):
     def form_valid(self, form):
         form.instance.author = self.request.user.customuser
         return super().form_valid(form)
+
+def add_follower(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    userInfo = request.user
+    userInfo.customuser.followers.add(user.customuser)
+    userInfo.save()
+    return redirect('user_list')
+
+def delete_follower(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    userInfo = request.user
+    userInfo.customuser.followers.remove(user.customuser)
+    userInfo.save()
+    return redirect('user_list')
