@@ -1,0 +1,17 @@
+{% extends 'SNS/auth.html' %}
+{% block authContent %}
+  {% if my_like_list|length > 1 %}
+    {% for post in my_like_list %}
+        <div class="post">
+            <div class="date">
+              <p>author: {{ post.author }}</p>
+              <p>published: {{ post.pub_date }}</p>
+              <p>text: {{ post.text }}</p>
+              <hr>
+            </div>
+        </div>
+    {% endfor %}
+  {% else %}
+      You haven't liked any posts.
+  {% endif %}
+{% endblock %}
