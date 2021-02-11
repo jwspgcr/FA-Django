@@ -4,9 +4,17 @@
     {% for post in my_like_list %}
         <div class="post">
             <div class="date">
-              <p>author: {{ post.author }}</p>
+              <p>author:
+                <a href="{% url 'user_post' pk=post.author.pk %}">
+                  {{ post.author }}
+                </a>
+               </p>
               <p>published: {{ post.pub_date }}</p>
-              <p>text: {{ post.text }}</p>
+              <p>text:
+                <a href="{% url 'post_detail' pk=post.pk %}">
+                  {{ post.text }}
+                </a>
+              </p>
               <hr>
             </div>
         </div>

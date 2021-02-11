@@ -8,7 +8,8 @@ class CustomUser(models.Model):
         User, on_delete=models.CASCADE, primary_key=True)
     bio = models.TextField(max_length=200)
     followers = models.ManyToManyField("self")
-    likes = models.ManyToManyField("SNS.Post")
+    likes = models.ManyToManyField("SNS.Post", related_name="likes")
+    reposts = models.ManyToManyField("SNS.Post", related_name="reposts")
     def __str__(self):
         return self.user.username
 

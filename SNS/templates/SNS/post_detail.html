@@ -1,6 +1,6 @@
 {% extends 'SNS/auth.html' %}
+
 {% block authContent %}
-    {% for post in post_list %}
     <div class="post">
         <div class="date">
           <p>author:
@@ -14,8 +14,8 @@
               {{ post.text }}
             </a>
           </p>
+          <p>Likes: {{ post.likes.count }}  Reposts: {{ post.reposts.count }}</p>
           <hr>
         </div>
     </div>
-    {% endfor %}
 {% endblock %}

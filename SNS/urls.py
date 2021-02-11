@@ -11,4 +11,7 @@ urlpatterns = [
     path('like/<int:pk>',views.add_like,name='add_like'),
     path('likes',views.MyLikeListView.as_view(),name='my_like_list'),
     path('unlike/<int:pk>',views.remove_like,name='remove_like'),
+    path('repost/<int:pk>',views.add_repost,name='add_repost'),
+    path('unrepost/<int:pk>',views.remove_repost,name='remove_repost'),
+    path('post/detail/<int:pk>',views.PostDetailView.as_view(),name='post_detail'),
 ]
