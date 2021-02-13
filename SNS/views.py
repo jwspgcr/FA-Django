@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic.edit import CreateView
 from django.views.generic import ListView, DetailView
@@ -17,21 +18,26 @@ class HomeView(ListView):
     template_name = "SNS/home.html"
 
     def get_queryset(self):
-        if self.request.user.is_authenticated:
-            myFollowers = self.request.user.customuser.followers.all()
-            reposts = self.request.user.customuser.reposts.all()
+        user = self.request.user
+        if user.is_authenticated:
+            myFollowers = user.customuser.followers.all()
+            reposts = user.customuser.reposts.all()
             return Post.objects.filter(Q(author__in=myFollowers) |
-                                       Q(pk__in=reposts)).order_by("-pub_date")
+                                       Q(pk__in=reposts) |
+                                       Q(author=user.customuser)
+                                       ).order_by("-pub_date")
         else:
             return super().get_queryset()
 
 
+@method_decorator(login_required, name="dispatch")
 class UserListView(ListView):
     model = CustomUser
     template_name = "SNS/user_list.html"
     context_object_name = "customuser_list"
 
 
+@method_decorator(login_required, name="dispatch")
 class MyLikeListView(ListView):
     template_name = "SNS/my_like_list.html"
     context_object_name = "my_like_list"
@@ -40,6 +46,7 @@ class MyLikeListView(ListView):
         return self.request.user.customuser.likes.all()
 
 
+@method_decorator(login_required, name="dispatch")
 class UserPostView(ListView):
     template_name = "SNS/user_post.html"
     context_object_name = "post_list"
@@ -49,6 +56,7 @@ class UserPostView(ListView):
         return Post.objects.filter(author=self.customuser)
 
 
+@method_decorator(login_required, name="dispatch")
 class PostDetailView(DetailView):
     model = Post
     template_name = "SNS/post_detail.html"
@@ -69,6 +77,7 @@ class RegisterView(CreateView):
         return response
 
 
+@method_decorator(login_required, name="dispatch")
 class PostCreateView(CreateView):
     model = Post
     template_name = "SNS/post_create.html"
@@ -80,6 +89,7 @@ class PostCreateView(CreateView):
         return super().form_valid(form)
 
 
+@login_required
 def add_follower(request, pk):
     user = get_object_or_404(User, pk=pk)
     userInfo = request.user
@@ -88,6 +98,7 @@ def add_follower(request, pk):
     return redirect('user_list')
 
 
+@login_required
 def delete_follower(request, pk):
     user = get_object_or_404(User, pk=pk)
     userInfo = request.user
@@ -96,6 +107,7 @@ def delete_follower(request, pk):
     return redirect('user_list')
 
 
+@login_required
 def add_like(request, pk):
     post = get_object_or_404(Post, pk=pk)
     userInfo = request.user
@@ -104,6 +116,7 @@ def add_like(request, pk):
     return redirect("home")
 
 
+@login_required
 def remove_like(request, pk):
     post = get_object_or_404(Post, pk=pk)
     userInfo = request.user
@@ -112,6 +125,7 @@ def remove_like(request, pk):
     return redirect("home")
 
 
+@login_required
 def add_repost(request, pk):
     post = get_object_or_404(Post, pk=pk)
     userInfo = request.user
@@ -120,6 +134,7 @@ def add_repost(request, pk):
     return redirect("home")
 
 
+@login_required
 def remove_repost(request, pk):
     post = get_object_or_404(Post, pk=pk)
     userInfo = request.user
