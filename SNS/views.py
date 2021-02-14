@@ -88,6 +88,24 @@ class PostCreateView(CreateView):
         form.instance.author = self.request.user.customuser
         return super().form_valid(form)
 
+@method_decorator(login_required, name="dispatch")
+class ReplyCreateView(CreateView):
+    model = Post
+    template_name = "SNS/reply_create.html"
+    fields = ["text"]
+    success_url = reverse_lazy("home")
+
+    def get_context_data(self):
+        self.replyTo = get_object_or_404(Post, pk=self.kwargs['pk'])
+        context=super().get_context_data()
+        context["post"]=self.replyTo
+        return context
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user.customuser
+        form.instance.replyTo = Post.objects.get(pk=self.kwargs['pk'])
+        return super().form_valid(form)
+
 
 @login_required
 def add_follower(request, pk):

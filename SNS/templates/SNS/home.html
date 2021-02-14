@@ -4,6 +4,7 @@
   {% if post_list|length > 0 %}
     {% for post in post_list %}
       {% include "SNS/post_part.html" with post=post %}
+      <hr>
     {% endfor %}
   {% else %}
     <p>

@@ -13,5 +13,6 @@ urlpatterns = [
     path('unlike/<int:pk>',views.remove_like,name='remove_like'),
     path('repost/<int:pk>',views.add_repost,name='add_repost'),
     path('unrepost/<int:pk>',views.remove_repost,name='remove_repost'),
+    path('reply/create/<int:pk>', views.ReplyCreateView.as_view(), name='reply_create'),
     path('post/detail/<int:pk>',views.PostDetailView.as_view(),name='post_detail'),
 ]

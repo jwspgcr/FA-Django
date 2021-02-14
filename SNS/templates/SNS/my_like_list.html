@@ -3,6 +3,7 @@
   {% if my_like_list|length > 0 %}
     {% for post in my_like_list %}
       {% include "SNS/post_part.html" with post=post %}
+      <hr>
     {% endfor %}
   {% else %}
       You haven't liked any posts.

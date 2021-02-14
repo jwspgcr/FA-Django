@@ -17,8 +17,8 @@ class CustomUser(models.Model):
 class Post(models.Model):
     author = models.ForeignKey("SNS.CustomUser",
                                on_delete=models.CASCADE, related_name="posts")
+    replyTo = models.ForeignKey("self", on_delete=models.CASCADE, null=True)
     text = models.TextField(max_length=170)
     pub_date = models.DateTimeField(default=timezone.now)
-    #likes = models.IntegerField(default=0)
     def __str__(self):
-        return self.author
+        return str(self.author)

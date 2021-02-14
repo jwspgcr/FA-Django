@@ -1,21 +1,6 @@
 {% extends 'SNS/auth.html' %}
 
 {% block authContent %}
-    <div class="post">
-        <div class="date">
-          <p>author:
-            <a href="{% url 'user_post' pk=post.author.pk %}">
-              {{ post.author }}
-            </a>
-           </p>
-          <p>published: {{ post.pub_date }}</p>
-          <p>text:
-            <a href="{% url 'post_detail' pk=post.pk %}">
-              {{ post.text }}
-            </a>
-          </p>
-          <p>Likes: {{ post.likes.count }}  Reposts: {{ post.reposts.count }}</p>
-          <hr>
-        </div>
-    </div>
+    {% include "SNS/post_part_detail.html" with post=post %}
+    <hr>
 {% endblock %}
