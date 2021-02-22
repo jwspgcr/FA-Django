@@ -1,25 +1,19 @@
-{% extends 'SNS/base.html' %}
-{% block content %}
-  {% if user.is_authenticated %}
-    {% for post in post_list %}
-        <div class="post">
-            <div class="date">
-              <p>author: {{ post.author }}</p>
-              <p>published: {{ post.pub_date }}</p>
-              <p>text: {{ post.text }}</p>
-              <hr>
-            </div>
-            {%comment%}
-            <!-- <h2><a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a></h2>
-            <p>{{ post.text|linebreaksbr }}</p>
-            <a href="{% url 'post_detail' pk=post.pk %}">Comments: {{ post.approved_comments.count }}</a> -->
-            {%endcomment%}
-        </div>
-    {% endfor %}
-  {% else %}
-    <p>You are NOT authenticated.
-      <a href="{% url 'login' %}">login</a> or
-      <a href="{% url 'register' %}">make your account.</a>
-    </p>
-  {% endif %}
+{% extends 'SNS/auth.html' %}
+
+{% block authContent %}
+  {% for post in post_list %}
+      <div class="post">
+          <div class="date">
+            <p>author: {{ post.author }}</p>
+            <p><small>published: {{ post.pub_date }}</small></p>
+            <p>{{ post.text }}</p>
+              {% if post in user.customuser.likes.all %}
+                <a class="btn btn-default" href="{% url 'remove_like' pk=post.pk %}">remove Like</a>
+              {% else %}
+                <a class="btn btn-default" href="{% url 'add_like' pk=post.pk %}">Like</a>
+              {% endif %}
+            <hr>
+          </div>
+      </div>
+  {% endfor %}
 {% endblock %}

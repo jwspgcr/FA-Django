@@ -1,6 +1,5 @@
-{% extends 'SNS/base.html' %}
-
-{% block content %}
+{% extends 'SNS/auth.html' %}
+{% block authContent %}
     <h2>New post</h2>
     <form method="POST" class="post-form">{% csrf_token %}
         {{ form.as_p }}

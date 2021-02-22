@@ -1,9 +1,10 @@
 {% load static %}
 <html>
     <head>
-      <!-- <link href="//fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext" rel="stylesheet" type="text/css"> -->
+      <link href="//fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext" rel="stylesheet" type="text/css">
       <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-      <!-- <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css"> -->
+      <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+      <link rel="icon" href="{% static 'SNS/icon/favicon.ico' %}">
       <!-- <link rel="stylesheet" href="{% static 'css/blog.css' %}"> -->
   <title>Final Assignment</title>
     </head>
@@ -13,7 +14,8 @@
               <p class="top-menu">Hello {{ user.username }}
                 <small>
                   (<a href="{% url 'logout' %}">Log out</a>)<br>
-                  <a href="{% url 'user_list' %}">consult user list</a>
+                  <a href="{% url 'user_list' %}">consult user list</a><br>
+                  <a href="{% url 'my_like_list' %}">Your favorite posts</a>
                 </small>
               </p>
               <a href="{% url 'post_create' %}" class="top-menu"><span class="glyphicon glyphicon-plus"></span></a>
@@ -25,8 +27,8 @@
         <div class="content container">
             <div class="row">
                 <div class="col-md-8">
-                {% block content %}
-                {% endblock %}
+                  {% block content %}
+                  {% endblock %}
                 </div>
             </div>
         </div>
