@@ -1,7 +1,21 @@
 {% extends 'SNS/base.html' %}
 {% block content %}
   {% if user.is_authenticated %}
-    <p>You are authenticated.</p>
+    {% for post in post_list %}
+        <div class="post">
+            <div class="date">
+              <p>author: {{ post.author }}</p>
+              <p>published: {{ post.pub_date }}</p>
+              <p>text: {{ post.text }}</p>
+              <hr>
+            </div>
+            {%comment%}
+            <!-- <h2><a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a></h2>
+            <p>{{ post.text|linebreaksbr }}</p>
+            <a href="{% url 'post_detail' pk=post.pk %}">Comments: {{ post.approved_comments.count }}</a> -->
+            {%endcomment%}
+        </div>
+    {% endfor %}
   {% else %}
     <p>You are NOT authenticated.
       <a href="{% url 'login' %}">login</a> or

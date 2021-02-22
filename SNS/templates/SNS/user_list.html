@@ -1,0 +1,31 @@
+{% extends 'SNS/base.html' %}
+{% block content %}
+
+    <div class="post">
+      <div class="date">
+        <table>
+          <tr>
+            <th>user</th>
+            <th>bio</th>
+            <th>follow</th>
+          </tr>
+          {% for customuser in customuser_list %}
+            {% if customuser != userInfo %}
+              <tr>
+                <td>{{ customuser }}</td>
+                <td>{{ customuser.bio }}</td>
+                <td>
+                  {% if customuser in userInfo.followers.all%}
+                    <a class="btn btn-default" href="{% url 'unfollow' pk=customuser.user.pk %}">following</a>
+                  {% else %}
+                    <a class="btn btn-default" href="{% url 'follow' pk=customuser.user.pk %}">NOT following</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {%endif%}
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+
+{% endblock %}
