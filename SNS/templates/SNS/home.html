@@ -3,6 +3,17 @@
 {% block authContent %}
   {% if post_list|length > 0 %}
     {% for post in post_list %}
+      {% if post.repostedBy %}
+        <p>
+          Your follower(s) who reposted this post:
+          {% for reposter in post.repostedBy %}
+            <a href="{% url 'user_post' pk=reposter.user.pk %}">
+              {{reposter}}
+            </a>
+
+          {% endfor %}
+        </p>
+      {% endif %}
       {% include "SNS/post_part.html" with post=post %}
       <hr>
     {% endfor %}

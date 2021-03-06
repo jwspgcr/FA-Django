@@ -21,11 +21,26 @@ class HomeView(ListView):
         user = self.request.user
         if user.is_authenticated:
             myFollowers = user.customuser.followers.all()
-            reposts = user.customuser.reposts.all()
-            return Post.objects.filter(Q(author__in=myFollowers) |
-                                       Q(pk__in=reposts) |
-                                       Q(author=user.customuser)
-                                       ).order_by("-pub_date")
+
+            posts = Post.objects.filter(Q(author__in=myFollowers) |
+                                        Q(author=user.customuser)
+                                        )
+
+            postsReposted = Post.objects.filter(reposts_set__in=myFollowers)
+
+            postsNotReposted = posts.difference(reposts)
+
+            for post in postsReposted:
+                post.keyDate = post.reposts_set.pub_date
+                reposters = CustomUser.objects.filter(reposts=post)
+                post.repostedBy = reposters
+
+            for post in postsNotReposted:
+                post.keyDate = post.pub_date
+
+            shownPosts = postsReposted.union(postsNotReposted).order_by("-keyDate")
+
+            return shownPosts
         else:
             return super().get_queryset()
 
