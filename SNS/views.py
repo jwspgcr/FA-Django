@@ -7,10 +7,51 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate
 from django.urls import reverse_lazy
-from django.db.models import Q
+from django.db.models import Q, F
 
 from .models import CustomUser, Post
 from .forms import RegisterForm
+from datetime import datetime
+
+def home_view(request):
+    user=request.user
+    if not user.is_authenticated:
+        contextPosts = []
+    else:
+        myFollowers = user.customuser.followers.all()
+
+        postsNotReposted = Post.objects.filter(Q(author__in=myFollowers) |
+                                    Q(author=user.customuser)
+                                    ).exclude(
+                                    Q(repost__repostedBy__in=myFollowers)
+                                    )
+
+        # latestRepostDate = Post.objects.filter(repost_set.latest("pub_date").pub_date
+        postsReposted = Post.objects.filter(
+                                    Q(repost__repostedBy__in=myFollowers)
+                                    )
+                                    # ).prefetch_related(
+                                    # Prefetch("repost_set",queryset=latestRepostDate,to_attr="keyDate"),
+                                    # Prefetch("repost_set",queryset=CustomUser.objects.)
+        for p in postsReposted:
+            p.keyDate = p.repost_set.latest("pub_date").pub_date
+            p.reposter = CustomUser.objects.filter(repost__post=p).exclude(user=user)
+            print(p.reposter)
+
+        for p in postsNotReposted:
+            p.keyDate = p.pub_date
+
+        postsList = list(postsNotReposted)+list(postsReposted)
+        print(postsList)
+        for p in postsList:
+            print(p.keyDate)
+
+        contextPosts = sorted(postsList, key=lambda x:x.keyDate, reverse=True)
+        print(contextPosts)
+        for p in contextPosts:
+            print(p.keyDate)
+
+    return render(request, 'SNS/home.html', {'posts': contextPosts})
 
 
 class HomeView(ListView):
@@ -26,33 +67,38 @@ class HomeView(ListView):
                                         Q(author=user.customuser) |
                                         Q(repost__repostedBy__in=myFollowers)
                                         )
+
+            return posts
             # posts = Post.objects.filter(Q(author=user.customuser))
             print(posts)
 
-            postsReposted = Post.objects.filter(repost__repostedBy__in=myFollowers).annotate(keyDate=)
+            postsReposted = Post.objects.filter(repost__repostedBy__in=myFollowers) # .annotate(keyDate=F("pub_date"))
             print(postsReposted)
 
-            postsNotReposted = posts.difference(postsReposted)
+            postsNotReposted = posts.difference(postsReposted) #.annotate(keyDate=F("pub_date"))
             print(postsNotReposted)
 
-            for post in postsReposted:
-                whenReposted = post.repost_set.latest("pub_date")
-                print("abc")
-                print(post.pub_date)
-                post.keyDate = whenReposted
-                reposters = CustomUser.objects.filter(reposts=post)
-                post.repostedBy = reposters
-                print(post.pub_date)
-                print("abc")
+            postsReposted = postsReposted.annotate(keyDate=F("pub_date"))
+            postsNotReposted = postsNotReposted.annotate(keyDate=F("pub_date"))
 
-            for post in postsNotReposted:
-                post.keyDate = post.pub_date
+            # for post in postsReposted:
+            #     whenReposted = post.repost_set.latest("pub_date")
+            #     print("abc")
+            #     print(post.pub_date)
+            #     post.keyDate = whenReposted
+            #     reposters = CustomUser.objects.filter(reposts=post)
+            #     post.repostedBy = reposters
+            #     print(post.pub_date)
+            #     print("abc")
+            #
+            # for post in postsNotReposted:
+            #     post.keyDate = post.pub_date
 
-            shownPosts = sorted(list(postsReposted)+list(postsNotReposted),
-                        lambda x:x.keyDate)
+            # shownPosts = sorted(list(postsReposted)+list(postsNotReposted),
+            #             lambda x:x.keyDate)
 
             shownPosts = postsReposted.union(postsNotReposted).order_by("-pub_date")
-            print(shownPosts)
+            print(shownPosts[4].keyDate)
 
             return shownPosts
         else:

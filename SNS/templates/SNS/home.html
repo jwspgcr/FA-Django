@@ -1,16 +1,15 @@
 {% extends 'SNS/auth.html' %}
 
 {% block authContent %}
-  {% if post_list|length > 0 %}
-    {% for post in post_list %}
-      {% if post.repostedBy %}
+  {% if posts|length > 0 %}
+    {% for post in posts %}
+      {% if post.reposter %}
         <p>
           Your follower(s) who reposted this post:
-          {% for reposter in post.repostedBy %}
+          {% for reposter in post.reposter %}
             <a href="{% url 'user_post' pk=reposter.user.pk %}">
               {{reposter}}
             </a>
-
           {% endfor %}
         </p>
       {% endif %}
