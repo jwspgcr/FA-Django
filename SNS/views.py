@@ -16,94 +16,32 @@ from datetime import datetime
 def home_view(request):
     user=request.user
     if not user.is_authenticated:
-        contextPosts = []
+        return render(request, 'SNS/home.html', {'posts': []})
     else:
         myFollowers = user.customuser.followers.all()
 
-        postsNotReposted = Post.objects.filter(Q(author__in=myFollowers) |
+        postsNotReposted = Post.objects.filter(
+                                    Q(author__in=myFollowers) |
                                     Q(author=user.customuser)
                                     ).exclude(
                                     Q(repost__repostedBy__in=myFollowers)
                                     )
 
-        # latestRepostDate = Post.objects.filter(repost_set.latest("pub_date").pub_date
         postsReposted = Post.objects.filter(
                                     Q(repost__repostedBy__in=myFollowers)
-                                    )
-                                    # ).prefetch_related(
-                                    # Prefetch("repost_set",queryset=latestRepostDate,to_attr="keyDate"),
-                                    # Prefetch("repost_set",queryset=CustomUser.objects.)
+                                    ).distinct()
         for p in postsReposted:
             p.keyDate = p.repost_set.latest("pub_date").pub_date
-            p.reposter = CustomUser.objects.filter(repost__post=p).exclude(user=user)
-            print(p.reposter)
+            p.reposter = CustomUser.objects.filter(Q(repost__post=p)).intersection(myFollowers)
 
         for p in postsNotReposted:
             p.keyDate = p.pub_date
 
         postsList = list(postsNotReposted)+list(postsReposted)
-        print(postsList)
-        for p in postsList:
-            print(p.keyDate)
 
         contextPosts = sorted(postsList, key=lambda x:x.keyDate, reverse=True)
-        print(contextPosts)
-        for p in contextPosts:
-            print(p.keyDate)
 
-    return render(request, 'SNS/home.html', {'posts': contextPosts})
-
-
-class HomeView(ListView):
-    model = Post
-    template_name = "SNS/home.html"
-
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_authenticated:
-            myFollowers = user.customuser.followers.all()
-
-            posts = Post.objects.filter(Q(author__in=myFollowers) |
-                                        Q(author=user.customuser) |
-                                        Q(repost__repostedBy__in=myFollowers)
-                                        )
-
-            return posts
-            # posts = Post.objects.filter(Q(author=user.customuser))
-            print(posts)
-
-            postsReposted = Post.objects.filter(repost__repostedBy__in=myFollowers) # .annotate(keyDate=F("pub_date"))
-            print(postsReposted)
-
-            postsNotReposted = posts.difference(postsReposted) #.annotate(keyDate=F("pub_date"))
-            print(postsNotReposted)
-
-            postsReposted = postsReposted.annotate(keyDate=F("pub_date"))
-            postsNotReposted = postsNotReposted.annotate(keyDate=F("pub_date"))
-
-            # for post in postsReposted:
-            #     whenReposted = post.repost_set.latest("pub_date")
-            #     print("abc")
-            #     print(post.pub_date)
-            #     post.keyDate = whenReposted
-            #     reposters = CustomUser.objects.filter(reposts=post)
-            #     post.repostedBy = reposters
-            #     print(post.pub_date)
-            #     print("abc")
-            #
-            # for post in postsNotReposted:
-            #     post.keyDate = post.pub_date
-
-            # shownPosts = sorted(list(postsReposted)+list(postsNotReposted),
-            #             lambda x:x.keyDate)
-
-            shownPosts = postsReposted.union(postsNotReposted).order_by("-pub_date")
-            print(shownPosts[4].keyDate)
-
-            return shownPosts
-        else:
-            return super().get_queryset()
-
+        return render(request, 'SNS/home.html', {'posts': contextPosts})
 
 @method_decorator(login_required, name="dispatch")
 class UserListView(ListView):
