@@ -23,22 +23,36 @@ class HomeView(ListView):
             myFollowers = user.customuser.followers.all()
 
             posts = Post.objects.filter(Q(author__in=myFollowers) |
-                                        Q(author=user.customuser)
+                                        Q(author=user.customuser) |
+                                        Q(repost__repostedBy__in=myFollowers)
                                         )
+            # posts = Post.objects.filter(Q(author=user.customuser))
+            print(posts)
 
-            postsReposted = Post.objects.filter(reposts_set__in=myFollowers)
+            postsReposted = Post.objects.filter(repost__repostedBy__in=myFollowers).annotate(keyDate=)
+            print(postsReposted)
 
-            postsNotReposted = posts.difference(reposts)
+            postsNotReposted = posts.difference(postsReposted)
+            print(postsNotReposted)
 
             for post in postsReposted:
-                post.keyDate = post.reposts_set.pub_date
+                whenReposted = post.repost_set.latest("pub_date")
+                print("abc")
+                print(post.pub_date)
+                post.keyDate = whenReposted
                 reposters = CustomUser.objects.filter(reposts=post)
                 post.repostedBy = reposters
+                print(post.pub_date)
+                print("abc")
 
             for post in postsNotReposted:
                 post.keyDate = post.pub_date
 
-            shownPosts = postsReposted.union(postsNotReposted).order_by("-keyDate")
+            shownPosts = sorted(list(postsReposted)+list(postsNotReposted),
+                        lambda x:x.keyDate)
+
+            shownPosts = postsReposted.union(postsNotReposted).order_by("-pub_date")
+            print(shownPosts)
 
             return shownPosts
         else:

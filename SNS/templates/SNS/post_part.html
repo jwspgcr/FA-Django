@@ -11,7 +11,7 @@
       <a href="{% url 'user_post' pk=post.author.pk %}">
         {{ post.author }}
       </a>
-     </p>
+    </p>
     <p><small>published: {{ post.pub_date }}</small></p>
     <p>text:
       <a href="{% url 'post_detail' pk=post.pk %}">
