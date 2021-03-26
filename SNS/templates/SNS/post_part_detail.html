@@ -1,0 +1,5 @@
+{% extends "SNS/post_part.html" %}
+
+{% block stats %}
+  <p>Likes: {{ post.likes.count }}  Reposts: {{ post.reposts.count }}</p>
+{% endblock %}

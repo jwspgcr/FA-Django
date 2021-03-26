@@ -1,13 +1,7 @@
 {% extends 'SNS/auth.html' %}
 {% block authContent %}
     {% for post in post_list %}
-        <div class="post">
-            <div class="date">
-              <p>author: {{ post.author }}</p>
-              <p>published: {{ post.pub_date }}</p>
-              <p>text: {{ post.text }}</p>
-              <hr>
-            </div>
-        </div>
+      {% include "SNS/post_part.html" with post=post %}
+      <hr>
     {% endfor %}
 {% endblock %}

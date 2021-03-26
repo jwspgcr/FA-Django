@@ -1,0 +1,6 @@
+{% extends 'SNS/auth.html' %}
+
+{% block authContent %}
+    {% include "SNS/post_part_detail.html" with post=post %}
+    <hr>
+{% endblock %}

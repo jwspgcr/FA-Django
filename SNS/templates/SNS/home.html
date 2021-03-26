@@ -1,19 +1,17 @@
 {% extends 'SNS/auth.html' %}
 
 {% block authContent %}
-  {% for post in post_list %}
-      <div class="post">
-          <div class="date">
-            <p>author: {{ post.author }}</p>
-            <p><small>published: {{ post.pub_date }}</small></p>
-            <p>{{ post.text }}</p>
-              {% if post in user.customuser.likes.all %}
-                <a class="btn btn-default" href="{% url 'remove_like' pk=post.pk %}">remove Like</a>
-              {% else %}
-                <a class="btn btn-default" href="{% url 'add_like' pk=post.pk %}">Like</a>
-              {% endif %}
-            <hr>
-          </div>
-      </div>
-  {% endfor %}
+  {% if post_list|length > 0 %}
+    {% for post in post_list %}
+      {% include "SNS/post_part.html" with post=post %}
+      <hr>
+    {% endfor %}
+  {% else %}
+    <p>
+      Here will be displayed your timeline.
+      <a href="{% url 'post_create' %}">Post</a> something or
+      <a href="{% url 'user_list' %}">search</a>
+       for your friends to make this space fancier.
+    </p>
+  {% endif %}
 {% endblock %}

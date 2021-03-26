@@ -1,0 +1,10 @@
+{% extends 'SNS/auth.html' %}
+{% block authContent %}
+    {% include "SNS/post_part.html" with post=post %}
+    <hr>
+    <h2>Reply post</h2>
+    <form method="POST" class="post-form">{% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="save btn btn-default">Save</button>
+    </form>
+{% endblock %}
