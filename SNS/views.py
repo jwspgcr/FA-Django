@@ -17,6 +17,9 @@ from datetime import datetime
 def home_view(request):
     user = request.user
 
+    if not user.is_authenticated:
+        return render(request, 'SNS/home.html', {'posts': []})
+
     myFollowers = user.customuser.followers.all()
 
     reposts = Repost.objects.filter(
@@ -66,10 +69,16 @@ def home_view(request):
 
 @method_decorator(login_required, name="dispatch")
 class UserListView(ListView):
-    model = CustomUser
     template_name = "SNS/user_list.html"
     context_object_name = "customuser_list"
 
+    def get_queryset(self):
+        return CustomUser.objects.all().select_related('user')
+
+    def get_context_data(self):
+        context = super().get_context_data()
+        context["followers"] = self.request.user.customuser.likes.all()
+        return context
 
 @method_decorator(login_required, name="dispatch")
 class MyLikeListView(ListView):

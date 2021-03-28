@@ -13,16 +13,16 @@
             {% if customuser != user.customuser %}
               <tr>
                 <td>
-                  <a href="{% url 'user_post' pk=customuser.user.pk %}">
+                  <a href="{% url 'user_post' pk=customuser.user.id %}">
                     {{ customuser }}
                   </a>
                 </td>
                 <td>{{ customuser.bio }}</td>
                 <td>
-                  {% if customuser in user.customuser.followers.all%}
-                    <a class="btn btn-default" href="{% url 'unfollow' pk=customuser.user.pk %}">following</a>
+                  {% if customuser in customuser_list.followers%}
+                    <a class="btn btn-default" href="{% url 'unfollow' pk=customuser.user.id %}">following</a>
                   {% else %}
-                    <a class="btn btn-default" href="{% url 'follow' pk=customuser.user.pk %}">NOT following</a>
+                    <a class="btn btn-default" href="{% url 'follow' pk=customuser.user.id %}">NOT following</a>
                   {% endif %}
                 </td>
               </tr>
