@@ -2,13 +2,13 @@
     {% if post.replyTo %}
       <p>
         Replies to
-        <a href="{% url 'post_detail' pk=post.replyTo.pk %}">this</a>
+        <a href="{% url 'post_detail' pk=post.replyTo.id %}">this</a>
          post
       </p>
     {% endif %}
 
     <p>author:
-      <a href="{% url 'user_post' pk=post.author.pk %}">
+      <a href="{% url 'user_post' pk=post.author.user.id %}">
         {{ post.author }}
       </a>
     </p>

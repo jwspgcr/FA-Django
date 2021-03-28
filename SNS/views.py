@@ -13,14 +13,20 @@ from .models import CustomUser, Post, Repost
 from .forms import RegisterForm
 from datetime import datetime
 
+
 def home_view(request):
-    user=request.user
+    user = request.user
 
     myFollowers = user.customuser.followers.all()
 
-    reposts = Repost.objects.select_related('post','repostedBy__user').filter(
-                                Q(repostedBy__in=myFollowers)
-                                ).order_by('-pub_date')
+    reposts = Repost.objects.filter(
+        Q(repostedBy__in=myFollowers)
+    ).select_related(
+        'post__replyTo',
+        'post__author__user',
+        'repostedBy__user'
+    ).order_by('-pub_date')
+
     uniqueRepostedPosts = []
     for r in reposts:
         p = r.post
@@ -33,26 +39,30 @@ def home_view(request):
             uniqueRepostedPosts.append(p)
 
     postsNotReposted = Post.objects.filter(
-                                Q(author__in=myFollowers) |
-                                Q(author=user.customuser)
-                                ).exclude(
-                                Q(repost__repostedBy__in=myFollowers)
-                                )
+        Q(author__in=myFollowers) |
+        Q(author=user.customuser)
+    ).exclude(
+        Q(repost__repostedBy__in=myFollowers)
+    ).select_related(
+        'replyTo',
+        'author__user'
+    )
 
     for p in postsNotReposted:
         p.keyDate = p.pub_date
 
-    postsList = list(postsNotReposted)+list(uniqueRepostedPosts)
+    postsList = list(postsNotReposted) + list(uniqueRepostedPosts)
 
-    contextPosts = sorted(postsList, key=lambda x:x.keyDate, reverse=True)
+    contextPosts = sorted(postsList, key=lambda x: x.keyDate, reverse=True)
 
     return render(request,
-                'SNS/home.html',
-                {
-                'posts': contextPosts,
-                'postsLiked': user.customuser.likes.all(),
-                'postsReposted': user.customuser.reposts.all(),
-                })
+                  'SNS/home.html',
+                  {
+                      'posts': contextPosts,
+                      'postsLiked': user.customuser.likes.all(),
+                      'postsReposted': user.customuser.reposts.all(),
+                  })
+
 
 @method_decorator(login_required, name="dispatch")
 class UserListView(ListView):
@@ -77,7 +87,10 @@ class UserPostView(ListView):
 
     def get_queryset(self):
         self.customuser = get_object_or_404(CustomUser, pk=self.kwargs['pk'])
-        return Post.objects.filter(author=self.customuser).select_related('replyTo','author')
+        return Post.objects.filter(author=self.customuser
+                                   ).select_related('replyTo',
+                                                    'author__user'
+                                                    ).order_by('-pub_date')
 
 
 @method_decorator(login_required, name="dispatch")
@@ -112,6 +125,7 @@ class PostCreateView(CreateView):
         form.instance.author = self.request.user.customuser
         return super().form_valid(form)
 
+
 @method_decorator(login_required, name="dispatch")
 class ReplyCreateView(CreateView):
     model = Post
@@ -121,8 +135,8 @@ class ReplyCreateView(CreateView):
 
     def get_context_data(self):
         self.replyTo = get_object_or_404(Post, pk=self.kwargs['pk'])
-        context=super().get_context_data()
-        context["post"]=self.replyTo
+        context = super().get_context_data()
+        context["post"] = self.replyTo
         return context
 
     def form_valid(self, form):
