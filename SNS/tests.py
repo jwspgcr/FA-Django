@@ -136,12 +136,35 @@ class HomePostTests(TestCase):
                                   "<Post: userB>",
                                   "<Post: userA>",
                                   ])
+    # リポストされたポストはリポストの日付を並べ替えに使う
+    def test_order_posts_with_post_pubdate_and_repost_pubdate(self):
+        userA = create_user("userA")
+        cuserA = create_customuser_from_user(userA)
+        cuserB = create_customuser("userB")
+        cuserC = create_customuser("userC")
 
+        post=create_post(cuserC, "",days=1)
+        create_post(cuserA,"",days=2)
+
+        cuserA.followers.add(cuserB)
+        cuserA.save()
+
+        create_repost(cuserB,post,days=3)
+
+        self.client.force_login(userA)
+        response = self.client.get(reverse("home"))
+        self.assertQuerysetEqual(response.context["posts"],
+                                ["<Post: userC>",
+                                "<Post: userA>",
+                                ])
+    # 複数回リポストされたポストは最新のリポストの日付を並べ替えに使う
+    # フォローしていない他ユーザーのリポスト日付は並べ替えに使わない
     def test_show_most_recently_reposted_post_first(self):
         userA = create_user("userA")
         cuserA = create_customuser_from_user(userA)
         cuserB = create_customuser("userB")
         cuserC = create_customuser("userC")
+        cuserD = create_customuser("userD")
 
         cuserA.followers.add(cuserB)
         cuserA.followers.add(cuserC)
@@ -153,6 +176,7 @@ class HomePostTests(TestCase):
         create_repost(cuserC,postB,days=5)
         create_post(cuserA,"",days=6)
         create_repost(cuserC,postC,days=7)
+        create_repost(cuserD,postB,days=8) # repost made by whom you don't follow
 
         self.client.force_login(userA)
         response = self.client.get(reverse("home"))
