@@ -20,7 +20,7 @@ def home_view(request):
 
     reposts = Repost.objects.select_related('post','repostedBy__user').filter(
                                 Q(repostedBy__in=myFollowers)
-                                ).order_by('pub_date')
+                                ).order_by('-pub_date')
     uniqueRepostedPosts = []
     for r in reposts:
         p = r.post
