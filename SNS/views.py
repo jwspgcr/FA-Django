@@ -9,39 +9,50 @@ from django.contrib.auth import login, authenticate
 from django.urls import reverse_lazy
 from django.db.models import Q, F
 
-from .models import CustomUser, Post
+from .models import CustomUser, Post, Repost
 from .forms import RegisterForm
 from datetime import datetime
 
 def home_view(request):
     user=request.user
-    if not user.is_authenticated:
-        return render(request, 'SNS/home.html', {'posts': []})
-    else:
-        myFollowers = user.customuser.followers.all()
 
-        postsNotReposted = Post.objects.filter(
-                                    Q(author__in=myFollowers) |
-                                    Q(author=user.customuser)
-                                    ).exclude(
-                                    Q(repost__repostedBy__in=myFollowers)
-                                    )
+    myFollowers = user.customuser.followers.all()
 
-        postsReposted = Post.objects.filter(
-                                    Q(repost__repostedBy__in=myFollowers)
-                                    ).distinct()
-        for p in postsReposted:
-            p.keyDate = p.repost_set.latest("pub_date").pub_date
-            p.reposter = CustomUser.objects.filter(Q(repost__post=p)).intersection(myFollowers)
+    reposts = Repost.objects.select_related('post','repostedBy__user').filter(
+                                Q(repostedBy__in=myFollowers)
+                                ).order_by('pub_date')
+    uniqueRepostedPosts = []
+    for r in reposts:
+        p = r.post
+        if p in uniqueRepostedPosts:
+            existingPost = uniqueRepostedPosts[uniqueRepostedPosts.index(p)]
+            existingPost.reposter.append(r.repostedBy)
+        else:
+            p.keyDate = r.pub_date
+            p.reposter = [r.repostedBy]
+            uniqueRepostedPosts.append(p)
 
-        for p in postsNotReposted:
-            p.keyDate = p.pub_date
+    postsNotReposted = Post.objects.filter(
+                                Q(author__in=myFollowers) |
+                                Q(author=user.customuser)
+                                ).exclude(
+                                Q(repost__repostedBy__in=myFollowers)
+                                )
 
-        postsList = list(postsNotReposted)+list(postsReposted)
+    for p in postsNotReposted:
+        p.keyDate = p.pub_date
 
-        contextPosts = sorted(postsList, key=lambda x:x.keyDate, reverse=True)
+    postsList = list(postsNotReposted)+list(uniqueRepostedPosts)
 
-        return render(request, 'SNS/home.html', {'posts': contextPosts})
+    contextPosts = sorted(postsList, key=lambda x:x.keyDate, reverse=True)
+
+    return render(request,
+                'SNS/home.html',
+                {
+                'posts': contextPosts,
+                'postsLiked': user.customuser.likes.all(),
+                'postsReposted': user.customuser.reposts.all(),
+                })
 
 @method_decorator(login_required, name="dispatch")
 class UserListView(ListView):
@@ -66,7 +77,7 @@ class UserPostView(ListView):
 
     def get_queryset(self):
         self.customuser = get_object_or_404(CustomUser, pk=self.kwargs['pk'])
-        return Post.objects.filter(author=self.customuser)
+        return Post.objects.filter(author=self.customuser).select_related('replyTo','author')
 
 
 @method_decorator(login_required, name="dispatch")

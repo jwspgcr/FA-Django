@@ -7,7 +7,7 @@
         <p>
           Your follower(s) who reposted this post:
           {% for reposter in post.reposter %}
-            <a href="{% url 'user_post' pk=reposter.user.pk %}">
+            <a href="{% url 'user_post' pk=reposter.user.id %}">
               {{reposter}}
             </a>
           {% endfor %}

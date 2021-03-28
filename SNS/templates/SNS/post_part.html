@@ -18,13 +18,13 @@
         {{ post.text }}
       </a>
     </p>
-    {% if post in user.customuser.likes.all %}
+    {% if post in postsLiked %}
       <a class="btn btn-default" href="{% url 'remove_like' pk=post.pk %}">remove Like</a>
     {% else %}
       <a class="btn btn-default" href="{% url 'add_like' pk=post.pk %}">Like</a>
     {% endif %}
 
-    {% if post in user.customuser.reposts.all %}
+    {% if post in postsReposted %}
       <a class="btn btn-default" href="{% url 'remove_repost' pk=post.pk %}">remove Repost</a>
     {% else %}
       <a class="btn btn-default" href="{% url 'add_repost' pk=post.pk %}">Repost</a>
