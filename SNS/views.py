@@ -49,10 +49,9 @@ def home_view(request):
     ).select_related(
         'replyTo',
         'author__user'
+    ).annotate(
+        keyDate=F('pub_date')
     )
-
-    for p in postsNotReposted:
-        p.keyDate = p.pub_date
 
     postsList = list(postsNotReposted) + list(uniqueRepostedPosts)
 
