@@ -1,38 +1,36 @@
 <div class="post">
-    <div class="date">
-      {% if post.replyTo %}
-        <p>
-          Replies to
-          <a href="{% url 'post_detail' pk=post.replyTo.pk %}">this</a>
-           post
-        </p>
-      {% endif %}
-
-      <p>author:
-        <a href="{% url 'user_post' pk=post.author.pk %}">
-          {{ post.author }}
-        </a>
-       </p>
-      <p><small>published: {{ post.pub_date }}</small></p>
-      <p>text:
-        <a href="{% url 'post_detail' pk=post.pk %}">
-          {{ post.text }}
-        </a>
+    {% if post.replyTo %}
+      <p>
+        Replies to
+        <a href="{% url 'post_detail' pk=post.replyTo.id %}">this</a>
+         post
       </p>
-      {% if post in user.customuser.likes.all %}
-        <a class="btn btn-default" href="{% url 'remove_like' pk=post.pk %}">remove Like</a>
-      {% else %}
-        <a class="btn btn-default" href="{% url 'add_like' pk=post.pk %}">Like</a>
-      {% endif %}
+    {% endif %}
 
-      {% if post in user.customuser.reposts.all %}
-        <a class="btn btn-default" href="{% url 'remove_repost' pk=post.pk %}">remove Repost</a>
-      {% else %}
-        <a class="btn btn-default" href="{% url 'add_repost' pk=post.pk %}">Repost</a>
-      {% endif %}
+    <p>author:
+      <a href="{% url 'user_post' pk=post.author.user.id %}">
+        {{ post.author }}
+      </a>
+    </p>
+    <p><small>published: {{ post.pub_date }}</small></p>
+    <p>text:
+      <a href="{% url 'post_detail' pk=post.pk %}">
+        {{ post.text }}
+      </a>
+    </p>
+    {% if post in postsLiked %}
+      <a class="btn btn-default" href="{% url 'remove_like' pk=post.pk %}">remove Like</a>
+    {% else %}
+      <a class="btn btn-default" href="{% url 'add_like' pk=post.pk %}">Like</a>
+    {% endif %}
 
-      <a class="btn btn-default" href="{% url 'reply_create' pk=post.pk %}">reply</a>
+    {% if post in postsReposted %}
+      <a class="btn btn-default" href="{% url 'remove_repost' pk=post.pk %}">remove Repost</a>
+    {% else %}
+      <a class="btn btn-default" href="{% url 'add_repost' pk=post.pk %}">Repost</a>
+    {% endif %}
 
-      {% block stats %}{% endblock %}
-    </div>
+    <a class="btn btn-default" href="{% url 'reply_create' pk=post.pk %}">reply</a>
+
+    {% block stats %}{% endblock %}
 </div>

@@ -7,35 +7,77 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate
 from django.urls import reverse_lazy
-from django.db.models import Q
+from django.db.models import Q, F
 
-from .models import CustomUser, Post
+from .models import CustomUser, Post, Repost
 from .forms import RegisterForm
+from datetime import datetime
 
 
-class HomeView(ListView):
-    model = Post
-    template_name = "SNS/home.html"
+def home_view(request):
+    user = request.user
 
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_authenticated:
-            myFollowers = user.customuser.followers.all()
-            reposts = user.customuser.reposts.all()
-            return Post.objects.filter(Q(author__in=myFollowers) |
-                                       Q(pk__in=reposts) |
-                                       Q(author=user.customuser)
-                                       ).order_by("-pub_date")
+    if not user.is_authenticated:
+        return render(request, 'SNS/home.html', {'posts': []})
+
+    myFollowers = user.customuser.followers.all()
+
+    reposts = Repost.objects.filter(
+        Q(repostedBy__in=myFollowers)
+    ).select_related(
+        'post__replyTo',
+        'post__author__user',
+        'repostedBy__user'
+    ).order_by('-pub_date')
+
+    uniqueRepostedPosts = []
+    for r in reposts:
+        p = r.post
+        if p in uniqueRepostedPosts:
+            existingPost = uniqueRepostedPosts[uniqueRepostedPosts.index(p)]
+            existingPost.reposter.append(r.repostedBy)
         else:
-            return super().get_queryset()
+            p.keyDate = r.pub_date
+            p.reposter = [r.repostedBy]
+            uniqueRepostedPosts.append(p)
+
+    postsNotReposted = Post.objects.filter(
+        Q(author__in=myFollowers) |
+        Q(author=user.customuser)
+    ).exclude(
+        Q(repost__repostedBy__in=myFollowers)
+    ).select_related(
+        'replyTo',
+        'author__user'
+    ).annotate(
+        keyDate=F('pub_date')
+    )
+
+    postsList = list(postsNotReposted) + list(uniqueRepostedPosts)
+
+    contextPosts = sorted(postsList, key=lambda x: x.keyDate, reverse=True)
+
+    return render(request,
+                  'SNS/home.html',
+                  {
+                      'posts': contextPosts,
+                      'postsLiked': user.customuser.likes.all(),
+                      'postsReposted': user.customuser.reposts.all(),
+                  })
 
 
 @method_decorator(login_required, name="dispatch")
 class UserListView(ListView):
-    model = CustomUser
     template_name = "SNS/user_list.html"
     context_object_name = "customuser_list"
 
+    def get_queryset(self):
+        return CustomUser.objects.all().select_related('user')
+
+    def get_context_data(self):
+        context = super().get_context_data()
+        context["followers"] = self.request.user.customuser.likes.all()
+        return context
 
 @method_decorator(login_required, name="dispatch")
 class MyLikeListView(ListView):
@@ -53,7 +95,10 @@ class UserPostView(ListView):
 
     def get_queryset(self):
         self.customuser = get_object_or_404(CustomUser, pk=self.kwargs['pk'])
-        return Post.objects.filter(author=self.customuser)
+        return Post.objects.filter(author=self.customuser
+                                   ).select_related('replyTo',
+                                                    'author__user'
+                                                    ).order_by('-pub_date')
 
 
 @method_decorator(login_required, name="dispatch")
@@ -88,6 +133,7 @@ class PostCreateView(CreateView):
         form.instance.author = self.request.user.customuser
         return super().form_valid(form)
 
+
 @method_decorator(login_required, name="dispatch")
 class ReplyCreateView(CreateView):
     model = Post
@@ -97,8 +143,8 @@ class ReplyCreateView(CreateView):
 
     def get_context_data(self):
         self.replyTo = get_object_or_404(Post, pk=self.kwargs['pk'])
-        context=super().get_context_data()
-        context["post"]=self.replyTo
+        context = super().get_context_data()
+        context["post"] = self.replyTo
         return context
 
     def form_valid(self, form):
